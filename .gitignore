@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+data/processed/
+.streamlit/
+*.egg-info/
+dist/
+build/
