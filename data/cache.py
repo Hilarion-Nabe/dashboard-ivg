@@ -24,7 +24,11 @@ _raw = load_all()
 _dep_lookup = build_dep_lookup(_raw["dep_year"])
 
 # ── GeoJSON ────────────────────────────────────────────────────
-_geojson = extract_geojson(_raw["dep_2023"])
+import json
+from pathlib import Path
+_geojson_path = Path(__file__).resolve().parent / "raw" / "departements.geojson"
+with open(_geojson_path) as f:
+    _geojson = json.load(f)
 
 # ── Fix is_dept flags using positive match against known 101 depts ──
 _raw["mineures"] = flag_depts(_raw["mineures"], _dep_lookup)
