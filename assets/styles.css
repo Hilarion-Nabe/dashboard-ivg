@@ -1,0 +1,227 @@
+/* ═══════════════════════════════════════════════════════
+   styles.css — Dashboard IVG France (Dash + Bootstrap)
+   Design: HPV-like, clean, professional, health data
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Fonts & Base ─────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    margin: 0;
+    padding: 0;
+}
+
+/* ── Header Banner ────────────────────────────────── */
+.header-banner {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #3d566e 100%);
+    color: white;
+    padding: 18px 30px;
+    margin-bottom: 0;
+}
+
+.header-banner h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.header-banner p {
+    font-size: 0.8rem;
+    font-weight: 300;
+    margin: 4px 0 0 0;
+    opacity: 0.8;
+}
+
+/* ── Tabs ──────────────────────────────────────────── */
+.custom-tabs .tab-content {
+    padding: 20px 30px 30px 30px;
+}
+
+.nav-tabs {
+    background: white;
+    border-bottom: 2px solid #e9ecef;
+    padding: 0 30px;
+}
+
+.nav-tabs .nav-link {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #6c757d;
+    border: none;
+    padding: 14px 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    transition: color 0.2s;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #2c3e50;
+    border: none;
+}
+
+.nav-tabs .nav-link.active {
+    color: #2c3e50;
+    border: none;
+    border-bottom: 3px solid #3498db;
+    font-weight: 600;
+}
+
+/* ── Filter Bar (sticky) ──────────────────────────── */
+.filter-bar {
+    background: white;
+    padding: 12px 30px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.filter-bar label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.filter-bar .Select-control,
+.filter-bar select,
+.filter-bar .dash-dropdown {
+    min-width: 160px;
+    font-size: 0.85rem;
+}
+
+/* ── KPI Cards ────────────────────────────────────── */
+.kpi-card {
+    background: white;
+    border-radius: 8px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    text-align: center;
+    transition: box-shadow 0.2s;
+}
+
+.kpi-card:hover {
+    box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+}
+
+.kpi-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1.2;
+}
+
+.kpi-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 4px;
+}
+
+.kpi-delta {
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.kpi-delta.up { color: #27ae60; }
+.kpi-delta.down { color: #e74c3c; }
+.kpi-delta.neutral { color: #95a5a6; }
+
+/* ── Section Titles ───────────────────────────────── */
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 20px 0 8px 0;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.section-subtitle {
+    font-size: 0.78rem;
+    color: #95a5a6;
+    font-weight: 400;
+    margin-bottom: 12px;
+}
+
+/* ── Micro-guide ──────────────────────────────────── */
+.micro-guide {
+    font-size: 0.75rem;
+    color: #95a5a6;
+    font-style: italic;
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* ── Footer ───────────────────────────────────────── */
+.footer {
+    background: #f1f3f5;
+    border-top: 1px solid #dee2e6;
+    padding: 10px 30px;
+    font-size: 0.7rem;
+    color: #868e96;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.footer span {
+    white-space: nowrap;
+}
+
+/* ── Plotly graph containers ──────────────────────── */
+.dash-graph {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+/* ── Drawer / Modal ───────────────────────────────── */
+.dept-drawer {
+    background: white;
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.dept-drawer h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 16px;
+}
+
+/* ── Responsive adjustments ───────────────────────── */
+@media (max-width: 768px) {
+    .header-banner h1 { font-size: 1.1rem; }
+    .kpi-value { font-size: 1.4rem; }
+    .filter-bar { padding: 10px 15px; }
+    .nav-tabs .nav-link { padding: 10px 12px; font-size: 0.75rem; }
+}
+
+/* ── Remove Plotly mode bar for cleaner look ──────── */
+.modebar { display: none !important; }
+
+/* ── Scrollbar styling ────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f3f5; }
+::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #adb5bd; }
