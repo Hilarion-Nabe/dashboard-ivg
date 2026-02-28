@@ -14,8 +14,7 @@ AZZOUZI Hiba, BENBETKA Rania, BENGUENNA Célia, LAVOGEZ Ethan, NABE-NANA Hilario
 
 ## 📸 Aperçu
 
-> *Insé<img width="1906" height="987" alt="image" src="https://github.com/user-attachments/assets/225aa2e8-ec7b-4c3e-a134-8ab6ecb38ec9" />
-rez ici une ou deux captures d'écran du dashboard.*
+<img width="1913" height="987" alt="Capture d&#39;écran 2026-02-28 152625" src="https://github.com/user-attachments/assets/1fc14070-28fe-441c-94c9-c8ebb5fe53ba" />
 
 Le tableau de bord fournit :
 - **Carte choroplèthe** des taux de recours à l'IVG par département
