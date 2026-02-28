@@ -27,7 +27,7 @@ Le tableau de bord fournit :
 ## 🔗 Sources des données
 
 Les données proviennent de deux sources complémentaires :
-- **DREES / SNDS** — 5 fichiers collectés via scraping API ([script](scripts/scrape_widgets_to_csv.py))
+- **DREES / SNDS** — 5 fichiers collectés via scraping API ([scraping_code](scraping_code/scrape_widgets_to_csv.py))
 - **Data.gouv.fr** — 3 fichiers téléchargés manuellement (`donnees_feuil4`, `feuil7`, `feuil8`)
 
 | Fichier | Source | Période |
