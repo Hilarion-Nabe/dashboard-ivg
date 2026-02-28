@@ -14,7 +14,8 @@ AZZOUZI Hiba, BENBETKA Rania, BENGUENNA Célia, LAVOGEZ Ethan, NABE-NANA Hilario
 
 ## 📸 Aperçu
 
-> *Insérez ici une ou deux captures d'écran du dashboard.*
+> *Insé<img width="1906" height="987" alt="image" src="https://github.com/user-attachments/assets/225aa2e8-ec7b-4c3e-a134-8ab6ecb38ec9" />
+rez ici une ou deux captures d'écran du dashboard.*
 
 Le tableau de bord fournit :
 - **Carte choroplèthe** des taux de recours à l'IVG par département
@@ -92,13 +93,10 @@ ivg_dash/
 ```bash
 git clone https://github.com/Hilarion-Nabe/dashboard-ivg.git
 cd name_your_project
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1      # Windows PowerShell
 pip install -r requirements.txt
 python app.py
 ```
 
-Ouvrir http://localhost:8050
 
 ## ⚠ Note méthodologique
 
