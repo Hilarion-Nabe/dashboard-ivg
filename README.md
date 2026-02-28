@@ -14,7 +14,7 @@ AZZOUZI Hiba, BENBETKA Rania, BENGUENNA Célia, LAVOGEZ Ethan, NABE-NANA Hilario
 
 ## 📸 Aperçu
 
-> *Insérez ici une ou deux captures d'écran du dashboard.*
+<img width="1913" height="987" alt="Capture d&#39;écran 2026-02-28 152625" src="https://github.com/user-attachments/assets/1fc14070-28fe-441c-94c9-c8ebb5fe53ba" />
 
 Le tableau de bord fournit :
 - **Carte choroplèthe** des taux de recours à l'IVG par département
@@ -27,7 +27,7 @@ Le tableau de bord fournit :
 ## 🔗 Sources des données
 
 Les données proviennent de deux sources complémentaires :
-- **DREES / SNDS** — 5 fichiers collectés via scraping API ([script](scripts/scrape_widgets_to_csv.py))
+- **DREES / SNDS** — 5 fichiers collectés via scraping API ([scraping_code](scraping_code/scrape_widgets_to_csv.py))
 - **Data.gouv.fr** — 3 fichiers téléchargés manuellement (`donnees_feuil4`, `feuil7`, `feuil8`)
 
 | Fichier | Source | Période |
@@ -81,7 +81,7 @@ ivg_dash/
 │   ├── tab3_patientes.py         # Onglet 3 — Les Patientes
 │   └── tab4_offre.py             # Onglet 4 — L'Offre de soins
 │
-├── scripts/
+├── scraping_code/
 │   └── scrape_widgets_to_csv.py  # Collecte automatisée des CSV DREES
 │
 └── DATA_MODEL.md                 # Documentation des données
@@ -92,13 +92,10 @@ ivg_dash/
 ```bash
 git clone https://github.com/Hilarion-Nabe/dashboard-ivg.git
 cd name_your_project
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1      # Windows PowerShell
 pip install -r requirements.txt
 python app.py
 ```
 
-Ouvrir http://localhost:8050
 
 ## ⚠ Note méthodologique
 
