@@ -37,25 +37,39 @@ body {
 }
 
 /* ── Tabs ──────────────────────────────────────────── */
-.custom-tabs .tab-content {
-    padding: 20px 30px 30px 30px;
+/* Phase 2 : onglets style "pill" — plus moderne et app-like */
+.custom-tabs {
+    border-bottom: none !important;
+    padding: 6px 20px;
+    background: transparent;
 }
 
-.nav-tabs {
-    background: white;
-    border-bottom: 2px solid #e9ecef;
-    padding: 0 30px;
-}
-
-.nav-tabs .nav-link {
+.custom-tabs .nav-link {
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 8px 20px;
+    margin-right: 6px;
+    color: #6c757d;
     font-size: 0.85rem;
     font-weight: 500;
-    color: #6c757d;
-    border: none;
-    padding: 14px 20px;
     text-transform: uppercase;
     letter-spacing: 0.8px;
-    transition: color 0.2s;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.custom-tabs .nav-link:hover {
+    background: #e2e8f0;
+    color: #2c3e50;
+    border: none !important;
+}
+
+.custom-tabs .nav-link.active {
+    background: #2980b9 !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(41, 128, 185, 0.3);
 }
 
 .nav-tabs .nav-link:hover {
@@ -72,19 +86,21 @@ body {
 
 /* ── Filter Bar (sticky) ──────────────────────────── */
 .filter-bar {
-    background: white;
-    padding: 12px 30px;
-    border-bottom: 1px solid #e9ecef;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 24px;
     flex-wrap: wrap;
+    /* Phase 2 : transformation en "card" flottante avec coins arrondis */
+    padding: 14px 28px;
+    margin: 8px 20px 10px 20px;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     position: sticky;
-    top: 0;
+    top: 8px;
     z-index: 100;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
+} 
 .filter-bar label {
     font-size: 0.75rem;
     font-weight: 600;
@@ -106,13 +122,16 @@ body {
     background: white;
     border-radius: 8px;
     padding: 18px 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     text-align: center;
-    transition: box-shadow 0.2s;
+    /* Phase 2 : ombre renforcée + bordure subtile pour détacher du fond */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #f0f0f0;
+    transition: box-shadow 0.2s ease;
+    /* La bordure gauche colorée est ajoutée inline par kpi_card() */
 }
 
 .kpi-card:hover {
-    box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
 .kpi-value {
@@ -168,16 +187,33 @@ body {
 }
 
 /* ── Footer ───────────────────────────────────────── */
+/* Phase 2 : footer en trois colonnes, fond blanc, séparateur fin */
 .footer {
-    background: #f1f3f5;
-    border-top: 1px solid #dee2e6;
-    padding: 10px 30px;
-    font-size: 0.7rem;
-    color: #868e96;
+    border-top: 1px solid #e9ecef;
+    background: white;
+    padding: 12px 30px;
+    font-size: 0.72rem;
+    color: #6c757d;
+    margin-top: 20px;
+}
+
+.footer-item {
     display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
+    align-items: center;
+}
+
+.footer-left {
+    justify-content: flex-start;
+}
+
+.footer-center {
+    justify-content: center;
+    text-align: center;
+}
+
+.footer-right {
+    justify-content: flex-end;
+    text-align: right;
 }
 
 .footer span {
@@ -213,9 +249,9 @@ body {
 @media (max-width: 768px) {
     .header-banner h1 { font-size: 1.1rem; }
     .kpi-value { font-size: 1.4rem; }
-    .filter-bar { padding: 10px 15px; }
-    .nav-tabs .nav-link { padding: 10px 12px; font-size: 0.75rem; }
-}
+    .filter-bar { padding: 10px 15px; margin: 4px 10px; border-radius: 8px; }
+    .custom-tabs .nav-link { padding: 6px 12px; font-size: 0.75rem; }
+} 
 
 /* ── Remove Plotly mode bar for cleaner look ──────── */
 .modebar { display: none !important; }
@@ -223,5 +259,10 @@ body {
 /* ── Scrollbar styling ────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f1f3f5; }
-::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #adb5bd; }
+::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 3px; } 
+::-webkit-scrollbar-thumb:hover { background: #adb5bd; } 
+
+/* Phase 2 : masquer le menu debug Dash en bas à droite */
+._dash-debug-menu {
+    display: none !important;
+} 

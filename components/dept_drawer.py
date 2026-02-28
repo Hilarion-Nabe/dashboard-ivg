@@ -1,8 +1,14 @@
 """
-components/dept_drawer.py — Panneau drill-down département.
+components/dept_drawer.py — Panneau latéral "profil département".
 
-S'ouvre via clic sur la carte ou le ranking.
-Affiche : KPIs, mini trend, profil âge, part mineures.
+Quand l'utilisateur clique sur un département (dans la carte, le ranking,
+ou le dropdown), ce panneau s'ouvre à droite avec un résumé complet :
+  - Les KPI du département (taux, rang national, écart médiane)
+  - Un mini graphique de tendance (taux 2016-2022)
+  - Le profil d'âge en barres (feuille 8)
+  - La part des mineures avec comparaison France (feuille 4)
+
+C'est un composant Offcanvas de Bootstrap (panneau coulissant).
 """
 
 from dash import html, dcc
@@ -10,7 +16,10 @@ import dash_bootstrap_components as dbc
 
 
 def make_drawer():
-    """Creates the offcanvas drawer (hidden by default, opened via callback)."""
+    """
+    Crée le panneau Offcanvas (caché par défaut).
+    Il est ouvert/fermé par le callback handle_drill_down dans app.py.
+    """
     return dbc.Offcanvas(
         id="dept-drawer",
         title="Profil département",
@@ -29,15 +38,14 @@ def make_drawer():
 def build_drawer_content(dep_nom, dep_code, annee_dep, annee_feuilles,
                          dep_year, mineures, age_dept, dep_2023):
     """
-    Builds the drawer HTML content for a given department.
+    Construit le contenu HTML du panneau pour un département donné.
 
-    Parameters
-    ----------
-    annee_dep : int       — Year for dep_year data (capped at 2022)
-    annee_feuilles : int  — Year for mineures/age_dept (up to 2024)
+    Deux années distinctes sont utilisées :
+      - annee_dep : pour les données dep_year (plafonné à 2022, car
+        c'est la dernière année disponible dans ce fichier)
+      - annee_feuilles : pour les données mineures et âge (va jusqu'à 2024)
 
-    Called from callback when user clicks on a department.
-    Returns a list of Dash HTML components.
+    Appelée par le callback quand l'utilisateur sélectionne un département.
     """
     import plotly.graph_objects as go
     from components.kpi_cards import kpi_card
@@ -45,7 +53,7 @@ def build_drawer_content(dep_nom, dep_code, annee_dep, annee_feuilles,
     children = []
     children.append(html.H3(f"{dep_nom} ({dep_code})"))
 
-    # ── KPIs (from dep_year, capped year) ──
+    # ── KPI du département (depuis dep_year) ──
     dy = dep_year[(dep_year["dep_code"] == dep_code)]
     row = dy[dy["annee"] == annee_dep] if annee_dep in dy["annee"].values else dy.iloc[-1:]
 
@@ -58,7 +66,7 @@ def build_drawer_content(dep_nom, dep_code, annee_dep, annee_feuilles,
         ])
         children.append(kpis)
 
-    # ── Mini trend : taux 2016-2022 ──
+    # ── Mini graphique de tendance : taux 2016-2022 ──
     if not dy.empty:
         fig_trend = go.Figure()
         fig_trend.add_trace(go.Scatter(
@@ -76,7 +84,7 @@ def build_drawer_content(dep_nom, dep_code, annee_dep, annee_feuilles,
         )
         children.append(dcc.Graph(figure=fig_trend, config={"displayModeBar": False}))
 
-    # ── Profil âge (feuille 8, uses annee_feuilles) ──
+    # ── Profil d'âge (feuille 8) ──
     ad = age_dept[(age_dept["dep_code"] == dep_code) & (age_dept["annee"] == annee_feuilles)]
     if not ad.empty:
         row_age = ad.iloc[0]
@@ -101,7 +109,7 @@ def build_drawer_content(dep_nom, dep_code, annee_dep, annee_feuilles,
         )
         children.append(dcc.Graph(figure=fig_age, config={"displayModeBar": False}))
 
-    # ── Mineures (feuille 4, uses annee_feuilles) ──
+    # ── Part des mineures (feuille 4) ──
     min_data = mineures[(mineures["dep_code"] == dep_code) & (mineures["annee"] == annee_feuilles)]
     fr_data = mineures[(mineures["zone_geo"] == "France entière") & (mineures["annee"] == annee_feuilles)]
 

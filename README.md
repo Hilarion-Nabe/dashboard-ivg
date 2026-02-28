@@ -1,63 +1,105 @@
-# Dashboard IVG France — Dash + CSS + Render
+# IVG en France — Droit légal, accessibilité réelle
 
-## Lancement local
+Un tableau de bord interactif développé avec **Dash** pour explorer les données sur l'interruption volontaire de grossesse en France. Le dashboard croise évolution nationale, inégalités territoriales, profil des patientes et transformations de l'offre de soins, à partir de données ouvertes DREES/SNDS et Data.gouv.fr.
 
-```bash
-cd ivg_dash/
-pip install -r requirements.txt
-python app.py
-```
-Puis ouvrir http://localhost:8050
+## 🌐 Accès en ligne
 
-## Déploiement sur Render
+Le dashboard est accessible via ce lien : [IVG Dashboard Live](https://VOTRE-URL.onrender.com)
 
-1. **Push** le repo sur GitHub (incluant `data/raw/` avec les 8 CSV)
-2. **Créer** un nouveau **Web Service** sur [render.com](https://render.com)
-3. **Connecter** au repo GitHub
-4. **Configurer** :
-   - Build command: `pip install -r requirements.txt`
-   - Start command: `gunicorn app:server --bind 0.0.0.0:$PORT`
-   - Python version: 3.11+
+## 👥 Auteurs
 
-Le fichier `render.yaml` pré-configure tout automatiquement si Render le détecte.
+[NOM Prénom], [NOM Prénom], [NOM Prénom], [NOM Prénom]
 
-## Architecture
+*[NOM DE L'ÉTABLISSEMENT] — [NOM DU COURS / MODULE], 2024–2025*
+
+## 📸 Aperçu
+
+> *Insérez ici une ou deux captures d'écran du dashboard.*
+
+Le tableau de bord fournit :
+- **Carte choroplèthe** des taux de recours à l'IVG par département
+- **Cleveland dot plot** des écarts à la médiane nationale (Top/Bottom 15)
+- **Pyramide d'âge** et dot plot des mineures par département
+- **Lollipop chart** des déserts IVG (départements ≤ 5 praticiens)
+- **Filtres dynamiques** pour explorer les données par année, zone et département
+- **Drill-down** par département (KPI locaux, tendance, profil d'âge)
+
+## 🔗 Sources des données
+
+Les données proviennent de deux sources complémentaires :
+- **DREES / SNDS** — 5 fichiers collectés via scraping API ([script](scripts/scrape_widgets_to_csv.py))
+- **Data.gouv.fr** — 3 fichiers téléchargés manuellement (`donnees_feuil4`, `feuil7`, `feuil8`)
+
+| Fichier | Source | Période |
+|---------|--------|---------|
+| `er-ivg-graf1-sept-2024.csv` | DREES / SNDS | 1990–2023 |
+| `er-ivg-graphique-2-ica0.csv` | DREES / SNDS | 1990–2023 |
+| `graf-dyn-er-ivg.csv` | DREES / SNDS | 2016–2024 |
+| `ivg_ods_test1.csv` | DREES / SNDS | 2016–2022 |
+| `er-ivg-carte-1.csv` | DREES / SNDS | 2023 |
+| `donnees_feuil4.csv` | Data.gouv.fr | 2016–2024 |
+| `donnees_feuil7.csv` | Data.gouv.fr | 2016–2024 |
+| `donnees_feuil8.csv` | Data.gouv.fr | 2016–2024 |
+
+Documentation détaillée du modèle de données : [`DATA_MODEL.md`](DATA_MODEL.md)
+
+## 🏗 Stack technique
+
+- **Dash** 2.x + **Plotly** 5.x pour les visualisations
+- **Dash Bootstrap Components** pour la mise en page
+- **pandas** + **numpy** pour le traitement des données
+- **requests** + API Opendatasoft pour la collecte (scraping DREES)
+- **gunicorn** sur **Render** (free tier)
+
+## 📁 Structure du projet
 
 ```
 ivg_dash/
-├── app.py                    # Point d'entrée Dash (server = app.server)
-├── pages/
-│   ├── tab1_constat.py       # Onglet 1 — Le Constat (urgence nationale)
-│   ├── tab2_fracture.py      # Onglet 2 — La Fracture (territoires)
-│   ├── tab3_patientes.py     # Onglet 3 — Les Patientes (profil démo)
-│   └── tab4_offre.py         # Onglet 4 — L'Offre de soins (praticiens)
-├── components/
-│   ├── header.py             # Bandeau titre HPV-like
-│   ├── filterbar.py          # Barre filtres sticky (année/zone/dept)
-│   ├── kpi_cards.py          # Composant KPI réutilisable
-│   ├── footer.py             # Footer 3 lignes méthodo
-│   └── dept_drawer.py        # Panneau drill-down département
-├── data/
-│   ├── load.py               # Chargement + nettoyage des 8 CSV
-│   ├── transforms.py         # Features dérivées (rang, charge, déserts)
-│   ├── cache.py              # Singleton — charge tout UNE SEULE FOIS
-│   └── raw/                  # 8 fichiers CSV sources
+├── app.py                        # Point d'entrée Dash
+├── requirements.txt              # Dépendances Python
+├── render.yaml                   # Config Render
+│
 ├── assets/
-│   └── styles.css            # CSS custom HPV-like
-├── requirements.txt
-├── render.yaml
-└── DATA_MODEL.md             # Documentation du modèle de données
+│   └── styles.css                # Charte graphique
+│
+├── components/
+│   ├── header.py                 # Bandeau titre
+│   ├── footer.py                 # Pied de page méthodologique
+│   ├── filterbar.py              # Barre de filtres (année/zone/dept)
+│   ├── kpi_cards.py              # Cartes KPI
+│   └── dept_drawer.py            # Panneau drill-down département
+│
+├── data/
+│   ├── load.py                   # Lecture et nettoyage des CSV
+│   ├── transforms.py             # Calculs dérivés
+│   ├── cache.py                  # Chargement unique au démarrage
+│   └── raw/                      # 8 fichiers CSV sources
+│
+├── pages/
+│   ├── tab1_constat.py           # Onglet 1 — Le Constat
+│   ├── tab2_fracture.py          # Onglet 2 — La Fracture
+│   ├── tab3_patientes.py         # Onglet 3 — Les Patientes
+│   └── tab4_offre.py             # Onglet 4 — L'Offre de soins
+│
+├── scripts/
+│   └── scrape_widgets_to_csv.py  # Collecte automatisée des CSV DREES
+│
+└── DATA_MODEL.md                 # Documentation des données
 ```
 
-## Données intégrées
+## 🛠 Installation & lancement en local
 
-| Fichier | Contenu | Période |
-|---------|---------|---------|
-| er-ivg-graf1-sept-2024.csv | Totaux nationaux + ratio | 1990-2023 |
-| er-ivg-graphique-2-ica0.csv | Taux ‰ + ICA | 1990-2023 |
-| graf-dyn-er-ivg.csv | Modalités nationales | 2016-2024 |
-| ivg_ods_test1.csv | Départemental multi-années | 2016-2022 |
-| er-ivg-carte-1.csv | Carte taux 2023 + GeoJSON | 2023 |
-| donnees_feuil4.csv | Part mineures (<18) | 2016-2024 |
-| donnees_feuil7.csv | Praticiens par profession | 2016-2024 |
-| donnees_feuil8.csv | Profil d'âge par département | 2016-2024 |
+```bash
+git clone https://github.com/[VOTRE_USERNAME]/ivg-dashboard.git
+cd ivg-dashboard
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1      # Windows PowerShell
+pip install -r requirements.txt
+python app.py
+```
+
+Ouvrir http://localhost:8050
+
+## ⚠ Note méthodologique
+
+La DREES signale une rupture de série en 2020 (passage au SNDS). Les comparaisons avant/après 2020 sont à interpréter avec prudence. Le taux de recours mesure la fréquence du recours, pas l'accessibilité réelle de l'offre.

@@ -1,5 +1,8 @@
 """
-components/header.py — Bandeau titre du dashboard.
+components/header.py — Bandeau titre en haut du dashboard.
+
+Affiché en permanence, il donne le titre du projet et les sources.
+Le style est défini dans assets/styles.css (classe .header-banner).
 """
 
 from dash import html

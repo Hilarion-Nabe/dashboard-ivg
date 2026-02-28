@@ -1,13 +1,18 @@
 """
-data/cache.py — Singleton data cache.
+data/cache.py — Cache central des données (chargé une seule fois).
 
-Loads all data ONCE at import time. All modules import from here.
-No recompute on callbacks.
+Quand on importe ce module, tout se charge automatiquement :
+les 8 CSV sont lus, nettoyés, enrichis, et stockés dans le
+dictionnaire DATA. Ensuite tous les callbacks Dash piochent
+directement dedans sans jamais recharger les fichiers.
 
-Usage:
+C'est le pattern "singleton" : un seul chargement au démarrage,
+puis lecture seule pour tout le reste de l'appli.
+
+Utilisation dans les autres modules :
     from data.cache import DATA
-    DATA["national_ts"]  # DataFrame
-    DATA["geojson"]      # GeoJSON FeatureCollection dict
+    DATA["national_ts"]  # → DataFrame
+    DATA["geojson"]      # → dict GeoJSON (contours départementaux)
 """
 
 from data.load import load_all, extract_geojson
@@ -17,25 +22,23 @@ from data.transforms import (
     build_charge_moyenne, build_deserts, attach_dep_code,
 )
 
-# ── Load everything once ───────────────────────────────────────
+# ── Étape 1 : lecture des 8 CSV ──────────────────────────────
 _raw = load_all()
 
-# ── Lookup table ───────────────────────────────────────────────
+# ── Étape 2 : table de correspondance nom ↔ code département ─
 _dep_lookup = build_dep_lookup(_raw["dep_year"])
 
-# ── GeoJSON ────────────────────────────────────────────────────
-import json
-from pathlib import Path
-_geojson_path = Path(__file__).resolve().parent / "raw" / "departements.geojson"
-with open(_geojson_path) as f:
-    _geojson = json.load(f)
+# ── Étape 3 : extraction du GeoJSON pour la carte ────────────
+_geojson = extract_geojson(_raw["dep_2023"])
 
-# ── Fix is_dept flags using positive match against known 101 depts ──
+# ── Étape 4 : correction du flag is_dept sur les feuilles 4/7/8
+# On utilise la table de correspondance pour identifier les vrais
+# départements (vs les régions et totaux nationaux)
 _raw["mineures"] = flag_depts(_raw["mineures"], _dep_lookup)
 _raw["praticiens"] = flag_depts(_raw["praticiens"], _dep_lookup)
 _raw["age_dept"] = flag_depts(_raw["age_dept"], _dep_lookup)
 
-# ── Enrichments ────────────────────────────────────────────────
+# ── Étape 5 : calculs dérivés et agrégations ─────────────────
 _dep_year = enrich_dep_year(_raw["dep_year"])
 _nat_age = build_national_age(_raw["age_dept"])
 _nat_mineures = build_national_mineures(_raw["mineures"])
@@ -43,33 +46,34 @@ _nat_prat = build_national_praticiens(_raw["praticiens"])
 _charge = build_charge_moyenne(_nat_prat, _raw["methodes"])
 _deserts = build_deserts(_raw["praticiens"], _dep_lookup)
 
-# Attach dep_code to feuilles that only have zone_geo
+# Ajout du code département aux feuilles qui n'ont que le nom
 _mineures = attach_dep_code(_raw["mineures"], _dep_lookup)
 _praticiens = attach_dep_code(_raw["praticiens"], _dep_lookup)
 _age_dept = attach_dep_code(_raw["age_dept"], _dep_lookup)
 
-# ── Public interface ───────────────────────────────────────────
+# ── Interface publique : le dictionnaire DATA ─────────────────
+# C'est CE dictionnaire que tous les onglets et composants importent
 DATA = {
-    # Raw (cleaned)
+    # Données nettoyées (niveau national)
     "national_ts":     _raw["national_ts"],
     "national_taux":   _raw["national_taux"],
     "methodes":        _raw["methodes"],
     "dep_2023":        _raw["dep_2023"],
 
-    # Enriched
+    # Données départementales enrichies
     "dep_year":        _dep_year,
     "mineures":        _mineures,
     "praticiens":      _praticiens,
     "age_dept":        _age_dept,
 
-    # Pre-aggregated
+    # Agrégations nationales pré-calculées
     "nat_age":         _nat_age,
     "nat_mineures":    _nat_mineures,
     "nat_prat":        _nat_prat,
     "charge":          _charge,
     "deserts":         _deserts,
 
-    # Geo
+    # Données géographiques
     "geojson":         _geojson,
     "dep_lookup":      _dep_lookup,
 }

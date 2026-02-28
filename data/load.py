@@ -1,8 +1,16 @@
 """
-data/load.py — Chargement et nettoyage des 8 fichiers CSV IVG.
+data/load.py — Lecture et nettoyage des 8 fichiers CSV du projet.
 
-Reprend les conventions du prototype Streamlit (encodage, regex année,
-standardisation dep_code) et ajoute le chargement des feuilles 4/7/8.
+On a 8 fichiers sources dans data/raw/, chacun avec un format un peu
+différent (séparateurs, encodage, noms de colonnes). Ce module s'occupe
+de tous les lire proprement et de les ramener à un format homogène
+avec des noms de colonnes normalisés.
+
+Le gros du travail c'est de gérer les cas particuliers :
+  - les virgules françaises dans les décimales (ex: "3,5" au lieu de 3.5)
+  - les codes départements en 2A/2B pour la Corse
+  - la double méthode de comptage en 2020 (doublons à résoudre)
+  - les lignes vides en fin de fichier sur certains CSV
 """
 
 import json
@@ -11,10 +19,12 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-# ── Chemins ────────────────────────────────────────────────────
+# ── Chemins vers les fichiers sources ─────────────────────────
+# ROOT pointe vers le dossier racine du projet (ivg_dash/)
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 
+# Dictionnaire des 8 CSV avec un nom lisible pour chacun
 FILES = {
     "national_ts":  RAW / "er-ivg-graf1-sept-2024.csv",
     "national_taux": RAW / "er-ivg-graphique-2-ica0.csv",
@@ -26,13 +36,19 @@ FILES = {
     "age_dept":     RAW / "donnees_feuil8.csv",
 }
 
+# Les 5 départements d'Outre-mer (DROM)
 DROM_CODES = {"971", "972", "973", "974", "976"}
 
 
-# ── Utilitaires ────────────────────────────────────────────────
+# ── Fonctions utilitaires ─────────────────────────────────────
 
 def _read(path: Path, sep=";") -> pd.DataFrame:
-    """Lecture CSV avec fallback encodage (BOM Windows, Latin-1)."""
+    """
+    Lit un CSV en essayant plusieurs encodages.
+    Les fichiers de la DREES sont parfois en UTF-8 avec BOM,
+    parfois en Latin-1... on essaye les trois encodages courants
+    et on garde celui qui marche.
+    """
     for enc in ("utf-8-sig", "latin-1", "cp1252"):
         try:
             return pd.read_csv(path, sep=sep, encoding=enc)
@@ -42,26 +58,43 @@ def _read(path: Path, sep=";") -> pd.DataFrame:
 
 
 def _std_dep_code(code) -> str:
-    """Standardise un code département : int/float/str → str zéro-paddé."""
+    """
+    Normalise un code département vers un format string propre.
+    Exemples : 1 → "01", 2A → "2A", 971.0 → "971"
+
+    C'est nécessaire parce que selon les CSV, le code peut arriver
+    en int (1), en float (1.0), ou en string ("01"), et il faut
+    que ce soit cohérent partout pour les jointures entre tables.
+    """
     if pd.isna(code):
         return ""
     s = str(code).strip()
+    # pandas lit parfois "1" comme 1.0, on enlève le .0
     if s.endswith(".0"):
         s = s[:-2]
+    # Les départements 1 à 9 doivent être sur 2 caractères (01, 02...)
     if s.isdigit() and len(s) == 1:
         s = s.zfill(2)
     return s
 
 
 def _comma_to_float(series: pd.Series) -> pd.Series:
-    """Convertit une série avec virgules françaises en float."""
+    """
+    Convertit une colonne avec des virgules françaises en float.
+    Ex: "4,3" → 4.3. Utile pour les feuilles 4/7/8 de la DREES
+    qui utilisent la notation française.
+    """
     return pd.to_numeric(series.astype(str).str.replace(",", "."), errors="coerce")
 
 
-# ── Chargement fichier par fichier ─────────────────────────────
+# ── Chargement de chaque fichier ──────────────────────────────
 
 def load_national_ts() -> pd.DataFrame:
-    """CSV2 — Totaux IVG nationaux 1990-2023 + ratio d'avortement."""
+    """
+    Charge les totaux nationaux d'IVG de 1990 à 2023.
+    Contient le nombre brut d'IVG, la version "sans reprises"
+    (disponible à partir de 2016), et le ratio IVG/naissances.
+    """
     df = _read(FILES["national_ts"])
     df = df.rename(columns={
         "Années": "annee",
@@ -75,7 +108,11 @@ def load_national_ts() -> pd.DataFrame:
 
 
 def load_national_taux() -> pd.DataFrame:
-    """CSV3 — Taux pour 1000 femmes + ICA, 1990-2023."""
+    """
+    Charge les taux de recours (pour 1000 femmes 15-49 ans)
+    et l'ICA (Indice Conjoncturel d'Avortement) de 1990 à 2023.
+    L'ICA c'est l'analogue de l'indice de fécondité mais pour l'IVG.
+    """
     df = _read(FILES["national_taux"])
     df = df.rename(columns={
         "Années": "annee",
@@ -89,11 +126,19 @@ def load_national_taux() -> pd.DataFrame:
 
 
 def load_methodes() -> pd.DataFrame:
-    """CSV5 — Répartition méthodes/lieux, 2016-2024 (9 lignes)."""
+    """
+    Charge la répartition nationale des IVG par méthode et lieu
+    (2016-2024, 9 lignes seulement).
+    Trois catégories : hors établissement, instrumentale en étab.,
+    médicamenteuse en étab.
+    On calcule aussi les pourcentages correspondants.
+    """
     df = _read(FILES["methodes"])
-    # Nettoyage \n dans les noms de colonnes
+    # Les noms de colonnes contiennent parfois des \n, on nettoie
     df.columns = [c.replace("\n", " ").strip() for c in df.columns]
 
+    # Renommage des colonnes (on cherche par mot-clé car les noms
+    # exacts changent selon les versions du fichier DREES)
     rename_map = {}
     for col in df.columns:
         cl = col.lower()
@@ -108,13 +153,14 @@ def load_methodes() -> pd.DataFrame:
     df = df.rename(columns=rename_map)
     df["annee"] = df["annee"].astype(int)
 
-    # Features dérivées
+    # Colonnes dérivées : total et pourcentages
     df["total"] = df["hors_etab"] + df["instrumentales"] + df["medic_etab"]
     for col_name, col_src in [("pct_hors_etab", "hors_etab"),
                                ("pct_instrumentales", "instrumentales"),
                                ("pct_medic_etab", "medic_etab")]:
         df[col_name] = (df[col_src] / df["total"] * 100).round(1)
 
+    # Part totale du médicamenteux = hors étab (quasi 100% médic.) + médic. en étab.
     df["total_medicamenteux"] = df["hors_etab"] + df["medic_etab"]
     df["pct_medicamenteux"] = (df["total_medicamenteux"] / df["total"] * 100).round(1)
 
@@ -122,17 +168,27 @@ def load_methodes() -> pd.DataFrame:
 
 
 def load_dep_year() -> pd.DataFrame:
-    """CSV1 — Départemental multi-années (2016-2022), 101 depts × 7 ans."""
+    """
+    Charge le gros fichier départemental multi-années (2016-2022).
+    C'est le fichier le plus lourd (~9 Mo brut), 101 départements × 7 ans.
+
+    Particularité : en 2020-2021, il y a des doublons car la DREES
+    a publié les chiffres avec l'ancienne ET la nouvelle méthode.
+    On garde la "nouvelle méthode" quand il y a doublon.
+    """
     df = _read(FILES["dep_year"])
 
-    # Extraction année numérique + résolution doublons "nouvelle méthode"
+    # L'année est dans un champ texte du style "2020 (nouvelle méthode)"
+    # On extrait juste le nombre avec une regex
     df["annee"] = df["Années"].str.extract(r"(\d{4})")[0].astype(int)
     df["is_nouvelle_methode"] = df["Années"].str.contains("nouvelle méthode", na=False)
 
+    # Gestion des doublons 2020-2021 : on garde la nouvelle méthode
     mask = df.duplicated(subset=["Zone géographique", "annee"], keep=False)
     if mask.any():
         df = df[~(mask & ~df["is_nouvelle_methode"])].copy()
 
+    # Normalisation du code département
     df["dep_code"] = df["Code Officiel Département"].apply(_std_dep_code)
     df["is_drom"] = df["dep_code"].isin(DROM_CODES)
 
@@ -147,7 +203,8 @@ def load_dep_year() -> pd.DataFrame:
         "Nom Officiel Région": "region",
     })
 
-    # Supprimer colonnes lourdes (géo, codes inutiles)
+    # On vire les colonnes lourdes qui ne servent pas au dashboard
+    # (géométries, codes redondants, colonnes détail inutilisées)
     drop = [c for c in df.columns if c in (
         "Geo Shape", "geo_point_2d", "Code Officiel Région",
         "Code Officiel Département", "Années", "is_nouvelle_methode",
@@ -161,7 +218,11 @@ def load_dep_year() -> pd.DataFrame:
 
 
 def load_dep_2023() -> pd.DataFrame:
-    """CSV4 — Carte départementale 2023 (taux + géométrie)."""
+    """
+    Charge la carte départementale 2023 (taux + géométrie GeoJSON).
+    Ce fichier contient la colonne `geom` avec le contour de chaque
+    département — c'est ce qui permet d'afficher la carte choroplèthe.
+    """
     df = _read(FILES["dep_2023"])
     df["dep_code"] = df["Code département"].apply(_std_dep_code)
     df = df.rename(columns={
@@ -173,7 +234,11 @@ def load_dep_2023() -> pd.DataFrame:
 
 
 def extract_geojson(dep_2023_df: pd.DataFrame) -> dict:
-    """Extrait un GeoJSON FeatureCollection depuis la colonne `geom` de CSV4."""
+    """
+    Transforme la colonne `geom` du CSV carte en un vrai GeoJSON
+    (FeatureCollection) utilisable par Plotly pour la choroplèthe.
+    On parcourt chaque ligne et on parse le JSON de la géométrie.
+    """
     features = []
     for _, row in dep_2023_df.iterrows():
         try:
@@ -194,51 +259,67 @@ def extract_geojson(dep_2023_df: pd.DataFrame) -> dict:
 
 
 def load_mineures() -> pd.DataFrame:
-    """Feuille 4 — Part IVG mineures (<18 ans) par zone, 2016-2024."""
+    """
+    Charge la feuille 4 — part des IVG chez les mineures (<18 ans)
+    par zone géographique, de 2016 à 2024.
+    Attention : ce fichier mélange départements, régions et totaux nationaux
+    dans la même colonne zone_geo. Le tri se fait plus tard dans cache.py.
+    """
     df = _read(FILES["mineures"])
     df["part_mineures"] = _comma_to_float(df["part_age_inf18"])
     df["part_age_inconnu"] = _comma_to_float(df["part_age_inc"])
     df = df.rename(columns={"annee": "annee"})
     df["annee"] = df["annee"].astype(int)
 
-    # is_dept sera affecté APRÈS par _flag_depts_from_lookup()
-    # Pour l'instant, on met False partout (sera corrigé dans cache.py)
+    # Le flag is_dept sera mis à jour plus tard avec la table de correspondance
+    # (on ne peut pas deviner ici quelles lignes sont des départements)
     df["is_dept"] = False
 
     return df[["zone_geo", "annee", "part_mineures", "part_age_inconnu", "is_dept"]].copy()
 
 
 def load_praticiens() -> pd.DataFrame:
-    """Feuille 7 — Praticiens IVG par profession/mode, 2016-2024."""
+    """
+    Charge la feuille 7 — nombre de praticiens IVG par type
+    (gynéco, généraliste, sage-femme) et par mode (cabinet, téléconsultation).
+    Couvre 2016 à 2024.
+
+    Même problème que load_mineures() : la colonne zone_geo mélange
+    départements et régions, le tri se fait après.
+    """
     df = _read(FILES["praticiens"])
     df.columns = [c.strip() for c in df.columns]
     df = df.rename(columns={"ANNEE": "annee"})
 
-    # Drop trailing empty row
+    # Certains fichiers ont une ligne vide à la fin, on la vire
     df = df.dropna(subset=["annee"])
     df["annee"] = df["annee"].astype(int)
 
-    # Rename to lowercase
+    # Passage en minuscules pour les noms de colonnes praticiens
     rename = {
         "CAB_GO": "cab_go", "CAB_MG": "cab_mg", "CAB_SF": "cab_sf", "CAB_AUT": "cab_aut",
         "TELE_GO": "tele_go", "TELE_MG": "tele_mg", "TELE_SF": "tele_sf", "TELE_AUT": "tele_aut",
     }
     df = df.rename(columns=rename)
 
-    # Totaux par profession (NaN = 0 pour sommes)
+    # Totaux par profession : cabinet + téléconsultation (NaN = 0 pour les sommes)
     for prof in ("go", "mg", "sf"):
         df[f"total_{prof}"] = df[f"cab_{prof}"].fillna(0) + df[f"tele_{prof}"].fillna(0)
     df["total_aut"] = df["cab_aut"].fillna(0) + df["tele_aut"].fillna(0)
     df["total_prat"] = df["total_go"] + df["total_mg"] + df["total_sf"] + df["total_aut"]
 
-    # is_dept sera affecté APRÈS par _flag_depts_from_lookup()
+    # Même logique que les autres feuilles : is_dept sera corrigé après
     df["is_dept"] = False
 
     return df
 
 
 def load_age_dept() -> pd.DataFrame:
-    """Feuille 8 — IVG par classe d'âge × département, 2016-2024."""
+    """
+    Charge la feuille 8 — nombre d'IVG par tranche d'âge et par département.
+    Couvre 2016 à 2024.
+    On calcule aussi la part de chaque tranche en pourcentage.
+    """
     df = _read(FILES["age_dept"])
 
     age_cols_raw = ["AGE_INF_18", "AGE_18&19", "AGE_20_24",
@@ -249,22 +330,26 @@ def load_age_dept() -> pd.DataFrame:
     df = df.rename(columns=dict(zip(age_cols_raw, age_cols_clean)))
     df["annee"] = df["annee"].astype(int)
 
-    # Total et parts en %
+    # Total par zone + parts en pourcentage pour chaque tranche
     df["total_dept"] = df[age_cols_clean].sum(axis=1)
     for col in age_cols_clean:
         pct_col = "pct_" + col.replace("age_", "")
         df[pct_col] = (df[col] / df["total_dept"] * 100).round(1)
 
-    # is_dept sera affecté APRÈS par _flag_depts_from_lookup()
+    # is_dept sera corrigé dans cache.py via la table de correspondance
     df["is_dept"] = False
 
     return df
 
 
-# ── Chargement complet ─────────────────────────────────────────
+# ── Fonction principale : tout charger d'un coup ─────────────
 
 def load_all() -> dict:
-    """Charge et nettoie les 8 fichiers. Retourne un dict de DataFrames."""
+    """
+    Charge et nettoie les 8 fichiers CSV.
+    Renvoie un dictionnaire avec un DataFrame par fichier.
+    Appelée une seule fois au démarrage de l'appli.
+    """
     print("Chargement des données IVG...")
     dfs = {
         "national_ts":  load_national_ts(),

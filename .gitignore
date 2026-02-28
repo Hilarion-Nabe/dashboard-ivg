@@ -1,9 +1,31 @@
+# ── Python ──────────────────────────────────────────
 __pycache__/
 *.pyc
-.env
-.venv/
+*.pyo
 *.egg-info/
 dist/
 build/
+
+# ── Environnement virtuel ───────────────────────────
+.venv/
+venv/
+env/
+
+# ── Variables d'environnement ───────────────────────
+.env
+.env.local
+
+# ── IDE / Éditeurs ──────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ──────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Données transformées (pas les raw !) ────────────
 data/processed/
