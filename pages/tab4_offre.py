@@ -81,14 +81,8 @@ def build_deserts_ranking(year):
     Classement des départements "déserts IVG" pour une année donnée,
     affiché sous forme de lollipop chart (point + tige horizontale).
 
-    Ce type de graphique est plus lisible qu'un bar chart classique
-    quand les valeurs sont petites (1 à 5) : l'œil se concentre sur
-    la position du point plutôt que sur la taille de la barre, ce qui
-    rend les écarts plus faciles à percevoir.
-
     On considère un département comme désert s'il a 5 praticiens
-    libéraux ou moins. En 2016, il y en avait ~50 ; en 2024, ~12.
-    La baisse s'explique surtout par l'arrivée des sages-femmes.
+    libéraux ou moins. 
     """
     df = _deserts[_deserts["annee"] == year].copy()
     if df.empty:
@@ -131,7 +125,7 @@ def build_deserts_ranking(year):
         height=max(250, len(df) * 25),
         margin=dict(l=160, r=60, t=35, b=25),
         showlegend=False,
-        xaxis=dict(title="Praticiens libéraux", dtick=1),
+        xaxis=dict( range=[0,6]),
     )
     return fig 
 
@@ -179,4 +173,4 @@ def layout():
                 dcc.Graph(id="deserts-ranking", config={"displayModeBar": False}),
                             ], md=5),
         ]),
-    ])
+    ])  
