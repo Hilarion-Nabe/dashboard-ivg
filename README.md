@@ -4,13 +4,13 @@ Un tableau de bord interactif développé avec **Dash** pour explorer les donné
 
 ## 🌐 Accès en ligne
 
-Le dashboard est accessible via ce lien : [IVG Dashboard Live](https://VOTRE-URL.onrender.com)
+Le dashboard est accessible via ce lien : [IVG Dashboard Live](https://dashboard-ivg.onrender.com)
 
 ## 👥 Auteurs
 
-[NOM Prénom], [NOM Prénom], [NOM Prénom], [NOM Prénom]
+AZZOUZI Hiba, BENBETKA Rania, BENGUENNA Célia, LAVOGEZ Ethan, NABE-NANA Hilarion 
 
-*[NOM DE L'ÉTABLISSEMENT] — [NOM DU COURS / MODULE], 2024–2025*
+*Université de Lille-UFR 3S (ILIS)*
 
 ## 📸 Aperçu
 
@@ -90,8 +90,8 @@ ivg_dash/
 ## 🛠 Installation & lancement en local
 
 ```bash
-git clone https://github.com/[VOTRE_USERNAME]/ivg-dashboard.git
-cd ivg-dashboard
+git clone https://github.com/Hilarion-Nabe/dashboard-ivg.git
+cd name_your_project
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1      # Windows PowerShell
 pip install -r requirements.txt
