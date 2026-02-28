@@ -81,7 +81,7 @@ ivg_dash/
 │   ├── tab3_patientes.py         # Onglet 3 — Les Patientes
 │   └── tab4_offre.py             # Onglet 4 — L'Offre de soins
 │
-├── scripts/
+├── scraping_code/
 │   └── scrape_widgets_to_csv.py  # Collecte automatisée des CSV DREES
 │
 └── DATA_MODEL.md                 # Documentation des données
